@@ -41,6 +41,10 @@
     Object.keys(obj).forEach(function(key){ // 객체의 속성명을 배열로 바꿔줌 => forEach로 넣어준다.
         obj2[key] = obj[key]
     }) 
+
+    or
+
+    Object.assign({})
     => 단점은 계층구조의 객체일 경우  계층 구조부분들은 참조가 된다.
 
     -. 객체는 모양이 같아두 비교하면 다르다 false 값 
@@ -85,7 +89,7 @@
     [프로토타입과 팩토리패턴]
     var 프로토타입 = {
         적용할 객체의 공통사항
-    }
+    } => 한방에 수정하고 , 한방에 추가하구 , 한방에 삭제하기 때문에
     var card = Object.create(프로토타입)
 
     //  Object.create와 생성자 함수의 차이 체크!
