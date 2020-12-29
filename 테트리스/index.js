@@ -296,11 +296,14 @@ function generate(){
     // 시작 부분 -1 이여야 빈공간없이 첫줄부터 딱 붙게 나온다 [현재 블록의 모양 데이터가 인덱스 0이 빈칸이기 때문에]
     currentTopLeft=[-1,3];
     let isGameOver = false;
-    //만약 전달 인자를 하나만 명시하면, 그 위치에서 배열 끝까지의 모든 원소를 포함하는 부분 배열을 반환
-    //console.log(currentBlock.shape[0].slice(1),'slice')
-    // 첫줄 빈 공간 빼고 모양만 
-    // 게임오버 판탄  ! 잘모르겟음!
-    currentBlock.shape[0].slice(1).forEach((col,i)=>{
+    /*
+      만약 slice 전달 인자를 하나만 명시하면, 그 위치에서 배열 끝까지의 모든 원소를 포함하는 부분 배열을 반환
+      console.log(currentBlock.shape[0].slice(1),'slice') => 예시로 ㅜ의 모양일때  3*3 검사지만 slice(1) 해줫기에 2*3의 모양으로 검사를 해사
+      데이터가 있으면 색을 칠한다. 
+      첫줄 빈 공간 빼고 모양만 
+      게임오버 판탄  ! 잘모르겟음!
+    */
+      currentBlock.shape[0].slice(1).forEach((col,i)=>{
         // 줄
         col.forEach((row,j)=>{
             //console.log(tetrisData[i][j+3],'row && tetrisData[i][j+3]')
@@ -339,15 +342,13 @@ function generate(){
 function tick(){
 
     //currentTopLeft[0]이 -1이므로 +1해준다
-    const nextTopLEft = [currentTopLeft[0]+1 ,currentTopLeft[1]];
+    const nextTopLeft = [currentTopLeft[0]+1 ,currentTopLeft[1]];
     const activeBlocks = [];
+    // 기본적으로 내려간다구하구 못내려갈경우 바꾼다 
     let canGoDown =true;
     // 현재 내모양의 방향
     let currentBlockShape = currentBlock.shape[currentBlock.currentShapeIndex];
-
-    // 아래 블럭이 있으면
-    for(let i =currentTopLeft[0]; i <currentTopLeft[0]+currentBlockShape.length; i++){
-        /*
+    /*
             continue 문은 현재 또는 레이블이 지정된 루프의 현재 반복에서 명령문의 실행을 종료하고 반복문의 처음으로 돌아가여 루프문의 다음 코드를 실행합니다.
             let text = '';
 
@@ -362,12 +363,20 @@ function tick(){
             // expected output: "012456789"
 
         */
+    // 아래 블럭이 있으면
+    /*
+      3*3으로 현재 위치를 검사하는데 바로 밑에 줄로 포함한 3*3과 비교해서 내려갈수 잇으면 내리구
+      내릴수 없으면 그위치에 고정
+    */
+    for(let i =currentTopLeft[0]; i <currentTopLeft[0]+currentBlockShape.length; i++){
+      
         if(i<0||i>=20) continue;
 
         for (let j = currentTopLeft[1]; j < currentTopLeft[1] + currentBlockShape.length; j++) {
-            console.log(i,j,'멀까나')
+          
             console.log(tetrisData[i][j],'tetrisData[i][j]')
             // 현재 움직이는 블럭이면
+          
             if(isActiveBlock(tetrisData[i][j])){
                 activeBlocks.push([i, j]);
 
@@ -379,16 +388,23 @@ function tick(){
 
             }
         }
-    }
+    } // q반복문을 한번 돌려서 canGoDown r값을 설정해준다 더이상 내려갈수 없으면 
 
     if(!canGoDown){
+        // 더이상 움직일수 없으면 고정 블럭으로 만들어준다.
         activeBlocks.forEach((block)=>{
-            console.log(tetrisData[blocks[0]][blocks[1]],'이것은 멀까나')
+            console.log(block,'이것은 blocks')
             tetrisData[blocks[0]][blocks[1]] *= 10;
         })
+        checkRow();
+        generate();
         return false;
     }else if(canGoDown){
-        /* d여기부터 다시 하자
+      
+        /*
+          tetrisData : 표 안에 데이터 
+          한번 다시 돈다 밑에 부터 돌아야 하기때문에 
+        */
         for (let i = tetrisData.length - 1; i >= 0; i--) {
             const col = tetrisData[i];
             col.forEach((row, j) => {
@@ -398,21 +414,73 @@ function tick(){
               }
             });
           }
-          //currentTopLeft = nextTopLeft;
+          currentTopLeft = nextTopLeft;
           draw();
           return true;
-          */
+          
     }
 
 
+}
+/*
+  다 차잇는지 검사
+  데이터가 없으면 그냥 지나가구 데이터 잇을때만 검사 
+  그리고 한줄이 다 채워져 잇으면 그줄을 제외하구 
+  인덱스 0 에 한줄을 추가하므로 한줄이 없어진 것처럼 보이게 한다.
+  */
+function checkRow(){
+  const fullRow = [];
+  tetrisData.forEach((col,i)=>{
+    let count =0; 
+    col.forEach((row,i)=>{
+      if(row>0) count++
+    })
+    if(count === 10) {
+      fullRow.push(i)
+    }
+  })
 
+  // 꽉찬 줄이 몇개인지 
+  const fullRowsCount = fullRows.length;
+  tetrisData = fullRow((row,i)=>!fullRow.includes(i))
+  for (let i = 0; i < fullRowsCount; i++) {
+    tetrisData.unshift([0,0,0,0,0,0,0,0,0,0]);
+  }
+  console.log(fullRows, JSON.parse(JSON.stringify(tetrisData)));
+  let score = parseInt(document.getElementById('score').textContent, 10);
+  score += fullRowsCount ** 2;
+  document.getElementById('score').textContent = String(score);
 }
 
 
 
-
   
+let int = setInterval(tick, 500);
 init();
 generate();
-tick()
 // setInterval(tick, 2000)
+
+
+document.getElementById('stop').addEventListener('click', function() {
+  clearInterval(int);
+});
+document.getElementById('start').addEventListener('click', function() {
+  if (int) {
+    clearInterval(int);
+  }
+  int = setInterval(tick, 500);
+});
+
+// 이벤트
+window.addEventListener('keydown',e=>{
+  switch(e.code){
+    case 'ArrowLeft': { // 키보드 왼쪽 클릭 = 좌측 한 칸 이동
+      break;
+    }
+    case 'ArrowRight': { // 키보드 오른쪽 클릭 = 우측 한 칸 이동
+    }
+    case 'ArrowDown': { // 키보드 아래쪽 클릭 = 하방측 한 칸 이동
+      tick();
+    }
+  }
+})
