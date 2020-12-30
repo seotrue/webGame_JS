@@ -248,7 +248,7 @@ function init(){
 }
 // 그리기[데이터와 화면 일치 시키기 ]
 function draw(){
-    console.log('drawed', JSON.parse(JSON.stringify(tetrisData)), JSON.parse(JSON.stringify(currentBlock)));
+   // console.log('drawed', JSON.parse(JSON.stringify(tetrisData)), JSON.parse(JSON.stringify(currentBlock)));
     tetrisData.forEach((col,i)=>{
         col.forEach((row,j)=>{
             // 생성한 블록 은 0보다 큰 값이 들어가므로
@@ -320,7 +320,7 @@ function generate(){
 
     // 블록 데이터 생성
     currentBlock.shape[0].slice(1).forEach((col,i)=>{
-        console.log(currentBlock.shape[0], currentBlock.shape[0].slice(1), col)
+        //(currentBlock.shape[0], currentBlock.shape[0].slice(1), col)
         col.forEach((row,j)=>{
             // +3이 시작할때의 위치
             if(row){
@@ -328,8 +328,8 @@ function generate(){
             }
         })
     })
-    console.log(tetrisData,'tetrisData')
-    console.log('generate', JSON.parse(JSON.stringify(currentBlock)));
+    //console.log(tetrisData,'tetrisData')
+    //console.log('generate', JSON.parse(JSON.stringify(currentBlock)));
     if(isGameOver){
         clearInterval(int);
         draw();
@@ -368,20 +368,20 @@ function tick(){
       3*3으로 현재 위치를 검사하는데 바로 밑에 줄로 포함한 3*3과 비교해서 내려갈수 잇으면 내리구
       내릴수 없으면 그위치에 고정
     */
-    for(let i =currentTopLeft[0]; i <currentTopLeft[0]+currentBlockShape.length; i++){
+    for(let i =currentTopLeft[0]; i <currentTopLeft[0] + currentBlockShape.length; i++){
       
         if(i<0||i>=20) continue;
-
+       //console.log( currentTopLeft[1],'')
         for (let j = currentTopLeft[1]; j < currentTopLeft[1] + currentBlockShape.length; j++) {
           
-            console.log(tetrisData[i][j],'tetrisData[i][j]')
+           // console.log(tetrisData[i][j],'tetrisData[i][j]')
             // 현재 움직이는 블럭이면
           
             if(isActiveBlock(tetrisData[i][j])){
                 activeBlocks.push([i, j]);
 
                 if (isInvalidBlock(tetrisData[i + 1] && tetrisData[i + 1][j])) {
-                    console.log('아래 블럭이 있다!', i, j, tetrisData[i][j], tetrisData[i + 1] && tetrisData[i + 1][j], JSON.parse(JSON.stringify(tetrisData)));
+                    //console.log('아래 블럭이 있다!', i, j, tetrisData[i][j], tetrisData[i + 1] && tetrisData[i + 1][j], JSON.parse(JSON.stringify(tetrisData)));
                     canGoDown = false;
                 }
 
@@ -392,8 +392,8 @@ function tick(){
 
     if(!canGoDown){
         // 더이상 움직일수 없으면 고정 블럭으로 만들어준다.
-        activeBlocks.forEach((block)=>{
-            console.log(block,'이것은 blocks')
+        activeBlocks.forEach((blocks)=>{
+            console.log(blocks,'이것은 blocks')
             tetrisData[blocks[0]][blocks[1]] *= 10;
         })
         checkRow();
@@ -429,7 +429,7 @@ function tick(){
   인덱스 0 에 한줄을 추가하므로 한줄이 없어진 것처럼 보이게 한다.
   */
 function checkRow(){
-  const fullRow = [];
+  const fullRows = [];
   tetrisData.forEach((col,i)=>{
     let count =0; 
     col.forEach((row,i)=>{
@@ -441,21 +441,22 @@ function checkRow(){
   })
 
   // 꽉찬 줄이 몇개인지 
-  const fullRowsCount = fullRows.length;
-  tetrisData = fullRow((row,i)=>!fullRow.includes(i))
-  for (let i = 0; i < fullRowsCount; i++) {
-    tetrisData.unshift([0,0,0,0,0,0,0,0,0,0]);
-  }
-  console.log(fullRows, JSON.parse(JSON.stringify(tetrisData)));
-  let score = parseInt(document.getElementById('score').textContent, 10);
-  score += fullRowsCount ** 2;
-  document.getElementById('score').textContent = String(score);
+    const fullRowsCount = fullRows.length;
+    tetrisData = tetrisData.filter((row, i) => !fullRows.includes(i));
+    for (let i = 0; i < fullRowsCount; i++) {
+        tetrisData.unshift([0,0,0,0,0,0,0,0,0,0]);
+    }
+    console.log(fullRows, JSON.parse(JSON.stringify(tetrisData)));
+    let score = parseInt(document.getElementById('score').textContent, 10);
+    score += fullRowsCount ** 2;
+    document.getElementById('score').textContent = String(score);
+
 }
 
 
 
   
-let int = setInterval(tick, 500);
+let int = setInterval(tick, 200);
 init();
 generate();
 // setInterval(tick, 2000)
@@ -484,3 +485,81 @@ window.addEventListener('keydown',e=>{
     }
   }
 })
+
+// 방향 전환
+window.addEventListener('keyup',(e)=>{
+  switch(e.code){
+      case 'ArrowUp': { // 방향 전환
+          console.log('방향 전환')
+          let currentBlockShape = currentBlock.shape[currentBlock.currentShapeIndex];
+          let isChangeble = true;
+
+          // 다음 인덱스 4이상이면 다시 초기화 0 모양으로 돌아오고 아니면 그다음 모양
+          const nextShapeIndex = currentBlock.currentShapeIndex + 1 === currentBlock.shape.length ? 0 : currentBlock.currentShapeIndex + 1;
+          const nextBlockShape = currentBlock.shape[nextShapeIndex]
+
+
+          console.log(nextBlockShape, '  nextBlockShape')  // 배열 다음 모양 배열
+          //console.log(  nextBlockShape[0],'  nextBlockShape')
+
+          // 모양의 크기대루 검사해서 블록이 잇는지 확인해야하니깐 currentBlockShape.length 만큼 검사 한다
+          for (let i = currentTopLeft[0]; i < currentTopLeft[0] + currentBlockShape.length; i++) {
+              /*
+                currentTopLeft[1] 현재 위치의 모양 가로 줄 시작
+                currentTopLeft[0] 현재 위치의 모양 세로줄 시작
+              */
+
+              console.log(nextBlockShape[currentTopLeft[0]], '  nextBlockShape ㅑ')
+
+              if (!isChangeble) break;
+              for (let j = currentTopLeft[1]; j < currentTopLeft[1] + currentBlockShape.length; j++) {
+                  // 데이터가 없을땐 지나가구
+                  if (!tetrisData[i]) continue;
+                  console.log(nextBlockShape[i - currentTopLeft[0]], i, currentTopLeft[0], ' nextBlockShape[i-currentTopLeft[0]]')
+                  // 이해 안간다.
+                  if (nextBlockShape[i - currentTopLeft[0]][j - currentTopLeft[1]] && isInvalidBlock(tetrisData[i] && tetrisData[i][j])) {
+                      console.log(i, j)
+                      isChangeble = false
+                  }
+
+              }
+
+              if (isChangeable) {
+                  console.log('isChangeable', JSON.parse(JSON.stringify(currentBlock)), nextBlockShape);
+                  while (currentTopLeft[0] < 0) {
+                      tick();
+                  }
+                  for (let i = currentTopLeft[0]; i < currentTopLeft[0] + currentBlockShape.length; i++) { // 돌린 이후 공간 체크
+                      for (let j = currentTopLeft[1]; j < currentTopLeft[1] + currentBlockShape.length; j++) {
+                          if (!tetrisData[i]) continue;
+                          let nextBlockShapeCell = nextBlockShape[i - currentTopLeft[0]][j - currentTopLeft[1]];
+                          if (nextBlockShapeCell > 0 && tetrisData[i][j] === 0) {
+                              // 다음 모양은 있는데 현재 칸이 없으면
+                              tetrisData[i][j] = currentBlock.numCode;
+                          } else if (nextBlockShapeCell === 0 && tetrisData[i][j] && tetrisData[i][j] < 10) {
+                              // 다음 모양은 없는데  현재 칸이 있으면
+                              tetrisData[i][j] = 0;
+                          }
+                      }
+                  }
+                  currentBlock.currentShapeIndex = nextShapeIndex;
+              }
+              draw();
+              break;
+          }
+
+      }
+
+    case 'Space': // 한방에 쭉 떨구기
+        while (tick()) {}
+        break;
+    }
+})
+
+// shape:[
+//   [
+//       [0, 0, 0],
+//       [0, 1, 1],
+//       [0, 1, 1],
+//   ]
+// ]
